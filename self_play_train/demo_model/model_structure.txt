@@ -1,0 +1,49 @@
+def model_structure(input_shape,l2_const):
+    def resnext_block(inputs, filters, cardinality=32, strides=1):
+        filters_per_group = filters // cardinality
+        shortcut = Conv2D(filters, kernel_size=1,kernel_regularizer=l2(l2_const),
+                          strides=strides, padding='same')(inputs)
+        shortcut = BatchNormalization()(shortcut)
+        residual = []
+        for _ in range(cardinality):
+            x = Conv2D(filters_per_group, kernel_size=3,kernel_regularizer=l2(l2_const),
+                    strides=strides, padding='same')(inputs)
+            x = BatchNormalization()(x)
+            x = Activation('relu')(x)
+            residual.append(x)
+
+        x = concatenate(residual)
+
+        x = add([shortcut, x])
+        x = Activation('relu')(x)
+        return x
+    in_x = network = Input(input_shape)
+    network = resnext_block(network, 32)
+    network = resnext_block(network, 32)
+    network = resnext_block(network, 32)
+
+    # action policy layers
+    # policy_net = Conv2D(filters=4, kernel_size=(1, 1), data_format="channels_first",
+    #                     kernel_regularizer=l2(l2_const), name="policy_net_input")(network)
+    # policy_net = BatchNormalization()(policy_net)
+    # policy_net = Activation("relu")(policy_net)
+    policy_net = Flatten()(network)
+    policy_net = Dense(256, kernel_regularizer=l2(l2_const))(policy_net)
+    policy_net = Activation("relu",)(policy_net)
+    policy_net = Dense(board_width * board_height,
+                    activation="softmax", kernel_regularizer=l2(l2_const), name="policy_net")(policy_net)
+    # state value layers
+    # value_net = Conv2D(filters=2, kernel_size=(1, 1), data_format="channels_first",
+    #                 kernel_regularizer=l2(l2_const), name="value_net_input")(network)
+    # value_net = BatchNormalization()(value_net)
+    # value_net = Activation("relu")(value_net)
+    value_net = Flatten()(network)
+    value_net = Dense(256, kernel_regularizer=l2(l2_const))(value_net)
+    value_net = Activation("relu",)(value_net)
+    value_net = Dense(128, kernel_regularizer=l2(l2_const))(value_net)
+    value_net = Activation("relu",)(value_net)
+    value_net = Dense(1, activation="tanh",
+                    kernel_regularizer=l2(l2_const), name="value_net")(value_net)
+
+    model = Model(in_x, [policy_net,  value_net])
+    return model

@@ -1,0 +1,15 @@
+load model = None
+load model dir = None
+epochs = 50
+batch_size = 512
+sample_size = 300000
+take_last_n_move = 5
+input_shape = (5, 15, 15)
+last_n_feature = 1
+init lr = 0.0001
+l2 const = 0.0001
+policy val acc = 0.3893600106239319
+policy val loss = 2.3700995445251465
+value val acc = 0.49779999256134033
+value val loss = 0.4806147813796997
+precess time = 001h 22m 07s

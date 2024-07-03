@@ -1,12 +1,11 @@
 from __future__ import print_function
-from keras.layers import *
-from keras.engine.training import Model
-from keras.regularizers import l2
-from keras.optimizers import Adam
-import keras.backend as K
-from keras.models import load_model
-from keras.models import Sequential
-from keras.utils import np_utils
+from keras.api.layers import *
+from keras.api.models import Model
+from keras.api.regularizers import l2
+from keras.api.optimizers import Adam
+import keras.api.backend as K
+from keras.api.models import load_model
+from keras.api.models import Sequential
 
 import numpy as np
 import pickle

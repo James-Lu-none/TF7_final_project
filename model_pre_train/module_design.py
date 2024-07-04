@@ -9,11 +9,6 @@ from keras.api.regularizers import l2
 from keras.api.optimizers import Adam
 import keras.api.backend as K
 
-
-board_width = 15
-board_height = 15
-l2_const = 1e-4
-
 def model_structure(input_shape,l2_const):
     def resnext_block(inputs, filters, cardinality=32, strides=1):
 
@@ -74,6 +69,11 @@ def model_structure(input_shape,l2_const):
     return model
 
 if __name__ == '__main__':
+
+    board_width = 15
+    board_height = 15
+    l2_const = 1e-4
+    
     model = model_structure(Input((4,  board_width,  board_height)),l2_const)
     lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate=1e-4,

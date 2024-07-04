@@ -8,6 +8,7 @@ from keras.api.models import Model, Sequential
 from keras.api.regularizers import l2
 from keras.api.optimizers import Adam
 import keras.api.backend as K
+import keras
 
 import random
 import numpy as np
@@ -112,7 +113,6 @@ model.compile(
 
 # print(model.summary())
 
-
 try:
     start_time=time.process_time()
     history = model.fit(x_train,
@@ -122,7 +122,7 @@ try:
                     validation_split=0.2,
                     verbose=1,
                     validation_data=(x_test, [y_test_probs, y_test_wins]))
-    precess_time=time.process_time()-start_time
+    process_time=time.process_time()-start_time
 except KeyboardInterrupt as e:
     print(e)
 
@@ -166,26 +166,16 @@ plt.ylabel('Mean Squared Error')
 plt.legend()
 
 plt.tight_layout()
-plt.show()
-
-
-score = model.evaluate(
-    x_test, [y_test_probs, y_test_wins], verbose=1)
-
-# print("Testing Accuracy = %.2f %%    loss = %f" % (accuracy * 100, loss))
-fig=plt.gcf()
-plt.show()
-print(f"policy val acc = {score[3]}")
-print(f"policy val loss = {score[1]}")
-print(f"value val acc = {score[4]}")
-print(f"value val loss = {score[2]}")
-
 
 t = time.localtime()
 folder_name = f"{t.tm_mon:0>2}_{t.tm_mday:0>2}_{t.tm_hour:0>2}{t.tm_min:0>2}{t.tm_sec:0>2}"
-new_folder_dir=os.path.join(root_path,'model_record',folder_name)
+new_folder_dir=os.path.join(root_path,'model_pre_train/model_record',folder_name)
 os.makedirs(new_folder_dir, exist_ok=True)
 
+plt.savefig(os.path.join(new_folder_dir,'history.png'))
+plt.show()
+
+keras.saving.save_model(model, os.path.join(new_folder_dir,'model.keras'))
 
 def convert_seconds(seconds):
     seconds=int(seconds)
@@ -194,32 +184,22 @@ def convert_seconds(seconds):
     seconds = seconds % 60
     return f"{hours:0>3}h {minutes:0>2}m {seconds:0>2}s"
 
-fig.savefig(os.path.join(new_folder_dir,'history.png'))
-model.save(os.path.join(new_folder_dir,'model.h5'))
+score = model.evaluate(
+    x_test, [y_test_probs, y_test_wins], verbose=1)
 
 with open(os.path.join(new_folder_dir,'result.txt'), 'w') as f:
+    f.write(f"board size = {board_size}\n")
     f.write(f"load model = {is_load_model}\n")
     f.write(f"load model dir = {load_model_dir}\n")
     f.write(f"epochs = {epochs}\n")
     f.write(f"batch_size = {batch_size}\n")
     f.write(f"sample_size = {sample_size}\n")
     f.write(f"take_last_n_move = {take_last_n_move}\n")
-    f.write(f"input_shape = {input_shape}\n")
     f.write(f"last_n_feature = {last_n_feature}\n")
     f.write(f"init lr = {init_lr}\n")
     f.write(f"l2 const = {l2_const}\n")
-    f.write(f"policy val acc = {score[3]}\n")
-    f.write(f"policy val loss = {score[1]}\n")
-    f.write(f"value val acc = {score[4]}\n")
-    f.write(f"value val loss = {score[2]}\n")
-    f.write(f"precess time = {convert_seconds(precess_time)}\n")
-
-python_file_name="manual_data_training.ipynb"
-with open(python_file_name) as f:
-    code = f.read()
-    f.close()
-json_code = json.loads(code)
-model_structure=json_code['cells'][4]
-with open(os.path.join(new_folder_dir,"model_structure.txt"), mode="w") as f:
-    f.write("".join(model_structure['source']))
-    f.close()
+    f.write(f"loss = {score[0]}\n")
+    f.write(f"policy_net_accuracy = {score[1]}\n")
+    f.write(f"value_net_mae = {score[2]}\n")
+    f.write(f"value_net_mean_squared_error = {score[3]}\n")
+    f.write(f"process time = {convert_seconds(process_time)}\n")

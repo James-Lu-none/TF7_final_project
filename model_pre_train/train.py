@@ -24,12 +24,12 @@ board_size = 15
 last_n_feature=1
 l2_const = 1e-4
 batch_size=512
-epochs=50
+epochs=1
 init_lr=1e-4
 is_load_model=False
 load_model_dir=None# xx_xx_xxxxxx
 
-sample_size=2500 # number of games choose from data
+sample_size=1 # number of games choose from data
 take_last_n_move=5 # number of last steps used in each game
 
 data_dir = os.path.join(root_path,f'data_transform/tmp/training_data_v{last_n_feature}')
@@ -104,9 +104,11 @@ optimizer = Adam(
 
 model.compile(
     optimizer=optimizer,
-    loss=['categorical_crossentropy', 'mean_squared_error'],
-    metrics=[['accuracy'],['accuracy']],
-)
+    loss={'policy_net': 'categorical_crossentropy', 'value_net': 'mean_squared_error'},
+    metrics={
+        'policy_net': ['accuracy'], 
+        'value_net': ['mae', 'mean_squared_error']
+    })
 
 # print(model.summary())
 
@@ -125,47 +127,47 @@ except KeyboardInterrupt as e:
     print(e)
 
 result=history
+print(result.history.keys())
 
-policy_net_loss = result.history['policy_net_loss']
-policy_net_accuracy = result.history['policy_net_accuracy']
-val_policy_net_loss = result.history['val_policy_net_loss']
-val_policy_net_accuracy = result.history['val_policy_net_accuracy']
+policy_net_accuracy = history.history['policy_net_accuracy']
+val_policy_net_accuracy = history.history['val_policy_net_accuracy']
+value_net_mae = history.history['value_net_mae']
+val_value_net_mae = history.history['val_value_net_mae']
+value_net_mse = history.history['value_net_mean_squared_error']
+val_value_net_mse = history.history['val_value_net_mean_squared_error']
 
-value_net_loss = result.history['value_net_loss']
-value_net_accuracy = result.history['value_net_accuracy']
-val_value_net_loss = result.history['val_value_net_loss']
-val_value_net_accuracy = result.history['val_value_net_accuracy']
+# Plotting Policy Net Accuracy
+plt.figure(figsize=(12, 5))
 
-plt.figure(figsize=(20, 10))
 plt.subplot(2, 2, 1)
-plt.title("Training and Validation Accuracy (policy_net)")
-plt.plot(policy_net_accuracy, color='green', label='Training Acuracy')
-plt.plot(val_policy_net_accuracy, color='red', label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-plt.subplot(2, 2, 2)
-plt.title('Training and Validation Loss (policy_net)')
-plt.plot(policy_net_loss, color='blue', label='Training Loss')
-plt.plot(val_policy_net_loss, color='purple', label='Validation Loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(loc='upper right')
+plt.plot(policy_net_accuracy, label='Policy Net Training Accuracy')
+plt.plot(val_policy_net_accuracy, label='Policy Net Validation Accuracy')
+plt.title('Policy Net Training and Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
 
+# Plotting Value Net MAE
+plt.subplot(2, 2, 2)
+plt.plot(value_net_mae, label='Value Net Training MAE')
+plt.plot(val_value_net_mae, label='Value Net Validation MAE')
+plt.title('Value Net Training and Validation MAE')
+plt.xlabel('Epochs')
+plt.ylabel('Mean Absolute Error')
+plt.legend()
+
+# Plotting Value Net MSE
 plt.subplot(2, 2, 3)
-plt.title("Training and Validation Accuracy (value_net)")
-plt.plot(value_net_accuracy, color='green', label='Training Acuracy')
-plt.plot(val_value_net_accuracy, color='red', label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-plt.subplot(2, 2, 4)
-plt.title('Training and Validation Loss (value_net)')
-plt.plot(value_net_loss, color='blue', label='Training Loss')
-plt.plot(val_value_net_loss, color='purple', label='Validation Loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-plt.legend(loc='upper right')
+plt.plot(value_net_mse, label='Value Net Training MSE')
+plt.plot(val_value_net_mse, label='Value Net Validation MSE')
+plt.title('Value Net Training and Validation MSE')
+plt.xlabel('Epochs')
+plt.ylabel('Mean Squared Error')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
 
 score = model.evaluate(
     x_test, [y_test_probs, y_test_wins], verbose=1)

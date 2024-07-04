@@ -3,5 +3,5 @@
 how to start scraping data
 ```bash
 cd playok_data_collector
-scarpy crawl playok 
+scrapy crawl playok 
 ```

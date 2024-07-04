@@ -9,7 +9,7 @@ from keras.api.regularizers import l2
 from keras.api.optimizers import Adam
 import keras.api.backend as K
 
-def model_structure(input_shape,l2_const):
+def model_structure(board_size,last_n_feature,l2_const):
     def resnext_block(inputs, filters, cardinality=32, strides=1):
 
         filters_per_group = filters // cardinality
@@ -31,7 +31,7 @@ def model_structure(input_shape,l2_const):
         return x
 
 
-    in_x = network = input_shape
+    in_x = network = Input((last_n_feature+4,board_size,board_size))
 
     network = Conv2D(64, kernel_size=3, strides=1, padding='same',kernel_regularizer=l2(l2_const))(network)
     network = BatchNormalization()(network)
@@ -50,7 +50,7 @@ def model_structure(input_shape,l2_const):
     policy_net = BatchNormalization()(policy_net)
     policy_net = Activation("relu")(policy_net)
     policy_net = Flatten()(policy_net)
-    policy_net = Dense(board_width * board_height,
+    policy_net = Dense(board_size * board_size,
                     activation="softmax", kernel_regularizer=l2(l2_const), name="policy_net")(policy_net)
     # state value layers
     value_net = Conv2D(filters=2, kernel_size=(1, 1), data_format="channels_first",
@@ -70,11 +70,10 @@ def model_structure(input_shape,l2_const):
 
 if __name__ == '__main__':
 
-    board_width = 15
-    board_height = 15
+    board_size = 15
     l2_const = 1e-4
     
-    model = model_structure(Input((4,  board_width,  board_height)),l2_const)
+    model = model_structure(1,board_size,l2_const)
     lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate=1e-4,
         decay_steps=10000,

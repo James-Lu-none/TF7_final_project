@@ -2,6 +2,6 @@
 
 how to start scraping data
 ```bash
-cd mannal_data_collector
+cd playok_data_collector
 scarpy crawl playok 
 ```

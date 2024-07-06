@@ -25,13 +25,13 @@ board_size = 15
 last_n_feature=1
 l2_const = 1e-4
 batch_size=512
-epochs=1
+epochs=50
 init_lr=1e-4
 is_load_model=False
 load_model_dir=None# xx_xx_xxxxxx
 
-sample_size=1 # number of games choose from data
-take_last_n_move=5 # number of last steps used in each game
+sample_size=1900 # number of games choose from data
+take_last_n_move=10 # number of last steps used in each game
 
 data_dir = os.path.join(root_path,f'data_transform/tmp/training_data_v{last_n_feature}')
 data_files = os.listdir(data_dir)
@@ -50,6 +50,8 @@ probs = []
 wins = []
 result = []
 moves = []
+if sample_size > len(data): 
+    sample_size=len(data)
 data=random.sample(data,sample_size)
 print(f"total of {len(data)} game(s) used")
 
